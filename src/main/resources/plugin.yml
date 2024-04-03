@@ -1,0 +1,7 @@
+name: MonopolyMinecraft
+version: 1.0.0-a
+main: ccom.pandapulsestudios.monopolyminecraft.MonopolyMinecraft
+authors: [Closeplanet2, PandaPulseStudios]
+depend: [PulseCore, PulseConfig, PulseCommands, PulseMatchmaking]
+api-version: 1.20
+
