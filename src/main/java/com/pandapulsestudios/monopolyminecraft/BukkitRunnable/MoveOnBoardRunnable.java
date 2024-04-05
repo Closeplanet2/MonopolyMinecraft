@@ -33,10 +33,10 @@ public class MoveOnBoardRunnable extends BukkitRunnable {
     public void run() {
         var listeners = networkRoom.ReturnAllPlayers();
         for(var player : listeners) TitleAPI.SendTitleToPlayer(player, ChatColor.BLUE + "" + amountToMove, ChatColor.GREEN + "Moving", 0, 1, 0);
-        gameBoard.MovePlayerXSquares(gamePiece, listeners, player, 1);
+        var gameTile = gameBoard.MovePlayerXSquares(gamePiece, listeners, player, 1);
         amountToMove -= 1;
         if(amountToMove <= 0){
-            gameBoard.DoneMoving(networkRoom, player, firstDice, secondDice);
+            gameBoard.DoneMoving(networkRoom, player, firstDice, secondDice, gameTile);
             cancel();
         }
     }

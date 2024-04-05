@@ -1,9 +1,6 @@
 package com.pandapulsestudios.monopolyminecraft.Matchmaking.Lobbies;
 
-import com.pandapulsestudios.monopolyminecraft.Enum.GamePiece;
-import com.pandapulsestudios.monopolyminecraft.Enum.GameTypes;
-import com.pandapulsestudios.monopolyminecraft.Enum.RoomKeys;
-import com.pandapulsestudios.monopolyminecraft.Enum.TileDirection;
+import com.pandapulsestudios.monopolyminecraft.Enum.*;
 import com.pandapulsestudios.monopolyminecraft.Object.GameBoard;
 import com.pandapulsestudios.monopolyminecraft.Object.GameTile;
 import com.pandapulsestudios.pulsecore.Chat.ChatAPI;
@@ -132,19 +129,37 @@ public class ClassicGameLobby implements LobbyCallbacks {
         WorldAPI.TimeLock(networkRoom.GameWorld().ReturnGameWorld(), TimeLock.Noon);
         networkRoom.SetRoomProperty(RoomKeys.GAME_BOARD.ID, GameBoard.CreateBlankGameBoard(networkRoom));
         networkRoom.SetRoomProperty(RoomKeys.PLAYER_GAME_PIECE.ID, ConfirmPlayerPieces(networkRoom));
+        networkRoom.SetRoomProperty(RoomKeys.PROPERTY_OWNERSHIP.ID, CreateTitleOwnership());
+        networkRoom.SetRoomProperty(RoomKeys.PROPERTY_OWNERSHIP_LEVEL.ID, CreateTitleOwnershipPropertyLevel());
+
         var gameBoard = (GameBoard) networkRoom.GetRoomProperty(RoomKeys.GAME_BOARD.ID, null);
+        var playerMoney = new HashMap<UUID, Integer>();
 
         for(var player : networkRoom.ReturnAllPlayers()){
             var gamePiece = GetPlayerGamePiece(networkRoom, player);
             gameBoard.SpawnPlayerPiece(gamePiece, networkRoom.ReturnAllPlayers(), player, 0);
+            playerMoney.put(player.getUniqueId(), 1500);
         }
 
-        SendNextTurnToPlayers(networkRoom);
+        networkRoom.SetRoomProperty(RoomKeys.PLAYER_MONEY.ID, playerMoney);
+        gameBoard.SendNextTurnToPlayers(networkRoom, null);
     }
 
     private GamePiece GetPlayerGamePiece(NetworkRoom networkRoom, Player player){
         var data = (HashMap<UUID, GamePiece>) networkRoom.GetRoomProperty(RoomKeys.PLAYER_GAME_PIECE.ID, null);
         return data.get(player.getUniqueId());
+    }
+
+    private HashMap<TileName, UUID> CreateTitleOwnership(){
+        var data = new HashMap<TileName, UUID>();
+        for(var tileName : TileName.values()) data.put(tileName, null);
+        return data;
+    }
+
+    private HashMap<TileName, _PropertyLevel> CreateTitleOwnershipPropertyLevel(){
+        var data = new HashMap<TileName, _PropertyLevel>();
+        for(var tileName : TileName.values()) data.put(tileName, _PropertyLevel.RENT);
+        return data;
     }
 
     private HashMap<UUID, GamePiece> ConfirmPlayerPieces(NetworkRoom networkRoom){
@@ -161,29 +176,5 @@ public class ClassicGameLobby implements LobbyCallbacks {
         }
         return pieceData;
     }
-
-    private void SendNextTurnToPlayers(NetworkRoom networkRoom){
-        var totalPlayers = networkRoom.ReturnAllPlayers();
-        var randomIndex = new Random().nextInt(totalPlayers.size());
-        var randomPlayer = totalPlayers.get(randomIndex);
-        TitleAPI.SendTitleToPlayer(randomPlayer, ChatColor.GREEN + "Your turn!", "", 0, 1, 0);
-        networkRoom.SetRoomProperty(RoomKeys.TURN_PLAYER_UUID.name(), randomPlayer.getUniqueId());
-        ClearPlayerChat(randomPlayer);
-        SendRollTextToPlayer(randomPlayer);
-    }
-
-    private void SendRollTextToPlayer(Player player){
-        var textComp1 = new TextComponent(ChatColor.GREEN + "Click to role..... ");
-        var textComp2 = new TextComponent(ChatColor.AQUA + "[ROLL]");
-        textComp2.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("CLICK TO ROLL!")));
-        textComp2.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/monopoly rolldice forturn 8049398596"));
-        textComp1.addExtra(textComp2);
-        player.spigot().sendMessage(textComp1);
-    }
-
-    private void ClearPlayerChat(Player player){
-        for(var i = 0; i < 100; i++) player.sendMessage("");
-    }
-
 
 }

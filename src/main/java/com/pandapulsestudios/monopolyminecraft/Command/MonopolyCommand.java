@@ -4,6 +4,7 @@ import com.pandapulsestudios.monopolyminecraft.BukkitRunnable.MoveOnBoardRunnabl
 import com.pandapulsestudios.monopolyminecraft.Enum.GamePiece;
 import com.pandapulsestudios.monopolyminecraft.Enum.GameTypes;
 import com.pandapulsestudios.monopolyminecraft.Enum.RoomKeys;
+import com.pandapulsestudios.monopolyminecraft.Enum.TileName;
 import com.pandapulsestudios.monopolyminecraft.MonopolyMinecraft;
 import com.pandapulsestudios.monopolyminecraft.Object.GameBoard;
 import com.pandapulsestudios.pulsecommands.Enums.TabType;
@@ -52,14 +53,46 @@ public class MonopolyCommand extends PlayerCommand {
         if(type.equals("forturn")){
             var firstDice = new Random().nextInt(6) + 1;
             var secondDice = new Random().nextInt(6) + 1;
-            var rolledDiceMessage = ChatColor.GREEN + "Rolled [" + ChatColor.AQUA + firstDice +  ChatColor.GREEN + "][" + secondDice + ChatColor.AQUA + "]";
-            ChatAPI.chatBuilder().messageType(MessageType.Player).playerToo(player).SendMessage(rolledDiceMessage);
-
+            for(var i = 0; i < 100; i++) player.sendMessage("");
+            player.sendMessage(ChatColor.RED + "Rolled: [" + firstDice + "][" + secondDice + "]");
             var gameboard = (GameBoard) networkRoom.GetRoomProperty(RoomKeys.GAME_BOARD.ID, null);
             var piecedata = (HashMap<UUID, GamePiece>) networkRoom.GetRoomProperty(RoomKeys.PLAYER_GAME_PIECE.ID, null);
             var runnable = new MoveOnBoardRunnable(networkRoom, gameboard, piecedata.get(player.getUniqueId()), player, firstDice, secondDice);
             runnable.runTaskTimer(MonopolyMinecraft.Instance, 0, 10);
         }
+    }
+
+    @PCMethod
+    @PCSignature("endturn")
+    public void EndTurn(UUID playerUUID, String password){
+        var player = Bukkit.getPlayer(playerUUID);
+        if(player == null) return;
+        var networkRoom = LobbyAPI.ReturnPlayerRoom(player);
+        if(networkRoom == null || !password.equals("8049398596")) return;
+        var gameboard = (GameBoard) networkRoom.GetRoomProperty(RoomKeys.GAME_BOARD.ID, null);
+        gameboard.SendNextTurnToPlayers(networkRoom, player);
+    }
+
+    @PCMethod
+    @PCSignature("buy_prop")
+    public void BuyProp(UUID playerUUID, String tileName, String password){
+        var player = Bukkit.getPlayer(playerUUID);
+        if(player == null) return;
+        var networkRoom = LobbyAPI.ReturnPlayerRoom(player);
+        if(networkRoom == null || !password.equals("8049398596")) return;
+        var gameboard = (GameBoard) networkRoom.GetRoomProperty(RoomKeys.GAME_BOARD.ID, null);
+        gameboard.BuyPropertyCommand(networkRoom, player, TileName.valueOf(tileName));
+    }
+
+    @PCMethod
+    @PCSignature("auc_prop")
+    public void AucProp(UUID playerUUID, String tileName, String password){
+        var player = Bukkit.getPlayer(playerUUID);
+        if(player == null) return;
+        var networkRoom = LobbyAPI.ReturnPlayerRoom(player);
+        if(networkRoom == null || !password.equals("8049398596")) return;
+        var gameboard = (GameBoard) networkRoom.GetRoomProperty(RoomKeys.GAME_BOARD.ID, null);
+        gameboard.AucPropertyCommand(player, TileName.valueOf(tileName));
     }
 
     @PCMethodData

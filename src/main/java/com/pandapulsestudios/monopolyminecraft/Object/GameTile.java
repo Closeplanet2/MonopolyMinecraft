@@ -2,6 +2,7 @@ package com.pandapulsestudios.monopolyminecraft.Object;
 
 import com.pandapulsestudios.monopolyminecraft.Enum.GamePiece;
 import com.pandapulsestudios.monopolyminecraft.Enum.TileDirection;
+import com.pandapulsestudios.monopolyminecraft.Enum.TileName;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -18,6 +19,7 @@ public class GameTile {
     private HashMap<UUID, Integer> playersOnTile = new HashMap<>();
     private List<Vector> tilePositions = new ArrayList<>();
     private final Location cameraLocation;
+    private TileName tileName;
 
     public GameTile(Location cameraLocation){
         this.cameraLocation = cameraLocation;
@@ -25,6 +27,14 @@ public class GameTile {
 
     public void AddVector(Vector vector){
         tilePositions.add(vector);
+    }
+
+    public void SetTileName(TileName tileName){
+        this.tileName = tileName;
+    }
+
+    public TileName ReturnTileName(){
+        return tileName;
     }
 
     public boolean IsPlayerHere(Player player){
